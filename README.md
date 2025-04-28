@@ -86,42 +86,33 @@ Year-over-year changes in loan amounts and defaults, segmentation by income brac
 
 ![Image](https://github.com/user-attachments/assets/e65071b8-9127-48f9-b22d-48d4a331a6d0)
 
----
 
 ## 🧠 Key DAX Measures Used
 
-1. **Average Loan Amount by Employment Type:**
-    ```DAX
-    AvgLoanAmount = AVERAGE(LoanData[LoanAmount])
-    ```
+1. **Default Rate by Year:**
+```DAX
+Default Rate by Year = 
+VAR totalloans = 
+    CALCULATE(COUNTROWS('Loan_default'), ALLEXCEPT('Loan_default', Loan_default[Year]))
+VAR default = 
+    CALCULATE(
+        COUNTROWS(
+            FILTER('Loan_default', 'Loan_default'[Default] = TRUE())
+        ),
+        ALLEXCEPT('Loan_default', Loan_default[Year])
+    )
+RETURN
+DIVIDE(default, totalloans) * 100
+```
 
-2. **Default Rate by Employment Type:**
-    ```DAX
-    DefaultRate = 
-    DIVIDE(
-        CALCULATE(COUNTROWS(LoanData), LoanData[Loan_Status] = "Defaulted"),
-        COUNTROWS(LoanData),
-        0
-    ) * 100
-    ```
+---
 
-3. **YOY Loan Amount Change:**
-    ```DAX
-    YOYChangeLoanAmount = 
-    VAR CurrentYearLoan = SUM(LoanData[LoanAmount])
-    VAR LastYearLoan = CALCULATE(SUM(LoanData[LoanAmount]), DATEADD(LoanData[Date], -1, YEAR))
-    RETURN
-    DIVIDE((CurrentYearLoan - LastYearLoan), LastYearLoan)
-    ```
-
-4. **YOY Default Change:**
-    ```DAX
-    YOYChangeDefault = 
-    VAR CurrentYearDefaults = CALCULATE(COUNTROWS(LoanData), LoanData[Loan_Status] = "Defaulted")
-    VAR LastYearDefaults = CALCULATE(COUNTROWS(LoanData), LoanData[Loan_Status] = "Defaulted", DATEADD(LoanData[Date], -1, YEAR))
-    RETURN
-    DIVIDE((CurrentYearDefaults - LastYearDefaults), LastYearDefaults)
-    ```
-
-
+2. **Loan Amount by Purpose:**
+```DAX
+Loan Amount by Purpose = 
+SUMX(
+    FILTER('Loan_default', NOT(ISBLANK('Loan_default'[LoanAmount]))),
+    'Loan_default'[LoanAmount]
+)
+```
 
